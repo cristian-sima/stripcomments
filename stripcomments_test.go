@@ -33,7 +33,7 @@ func TestStrip_StandaloneAndBlockComments(t *testing.T) {
 	src := `package p
 
 // doc comment
-func F() {
+func f() {
 	/* block comment */
 	x := 1
 	_ = x
