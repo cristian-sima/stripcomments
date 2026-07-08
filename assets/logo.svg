@@ -12,31 +12,31 @@
 
   <rect x="4" y="4" width="192" height="192" rx="40" fill="url(#bg)"/>
 
-  <!-- comment slashes being swept away -->
-  <g fill="#ffffff" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-weight="700">
-    <text x="44" y="86" font-size="58" opacity="0.28">//</text>
-    <text x="96" y="70" font-size="34" opacity="0.18">//</text>
-    <text x="132" y="52" font-size="22" opacity="0.10">/</text>
+  <!-- garbage // comment lines being swept away -->
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-weight="700" font-size="13">
+    <text x="28" y="46" fill="#ffffff" opacity="0.9">// TODO fix later</text>
+    <text x="40" y="70" fill="#ffffff" opacity="0.6">// does the thing</text>
+    <text x="60" y="92" fill="#ffffff" opacity="0.35">// obviously</text>
   </g>
 
   <!-- dust particles -->
   <g fill="#ffffff">
-    <circle cx="150" cy="60" r="3" opacity="0.5"/>
-    <circle cx="162" cy="76" r="2.2" opacity="0.4"/>
-    <circle cx="140" cy="44" r="2" opacity="0.35"/>
+    <circle cx="150" cy="58" r="3" opacity="0.5"/>
+    <circle cx="164" cy="74" r="2.2" opacity="0.4"/>
+    <circle cx="142" cy="42" r="2" opacity="0.35"/>
   </g>
 
   <!-- broom -->
-  <g transform="rotate(35 100 130)">
-    <rect x="94" y="40" width="9" height="78" rx="4" fill="#78350f"/>
-    <path d="M78 116 h42 l14 40 q-35 12 -70 0 z" fill="url(#broom)"/>
-    <path d="M82 150 l4 12 M92 154 l2 12 M100 155 l0 13 M108 154 l-2 12 M116 150 l-4 12"
+  <g transform="rotate(35 100 128)">
+    <rect x="94" y="38" width="9" height="78" rx="4" fill="#78350f"/>
+    <path d="M78 114 h42 l14 40 q-35 12 -70 0 z" fill="url(#broom)"/>
+    <path d="M82 148 l4 12 M92 152 l2 12 M100 153 l0 13 M108 152 l-2 12 M116 148 l-4 12"
           stroke="#b45309" stroke-width="3" stroke-linecap="round" fill="none"/>
   </g>
 
   <!-- preserved directive line, kept clean -->
   <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-weight="700">
-    <text x="30" y="168" font-size="17" fill="#a7f3d0">//go:</text>
-    <text x="79" y="168" font-size="17" fill="#ffffff">embed</text>
+    <text x="30" y="170" font-size="17" fill="#a7f3d0">//go:</text>
+    <text x="79" y="170" font-size="17" fill="#ffffff">embed</text>
   </g>
 </svg>
