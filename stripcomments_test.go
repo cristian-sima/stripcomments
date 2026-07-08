@@ -16,9 +16,9 @@ func F() {
 	_ = x
 }
 `
-	out, err := Strip([]byte(src))
+	out, err := StripComments([]byte(src))
 	if err != nil {
-		t.Fatalf("Strip returned error: %v", err)
+		t.Fatalf("StripComments returned error: %v", err)
 	}
 
 	if strings.Contains(string(out), "comment") {
@@ -39,9 +39,9 @@ func F() {
 	_ = x
 }
 `
-	out, err := Strip([]byte(src))
+	out, err := StripComments([]byte(src))
 	if err != nil {
-		t.Fatalf("Strip returned error: %v", err)
+		t.Fatalf("StripComments returned error: %v", err)
 	}
 
 	if strings.Contains(string(out), "comment") {
@@ -57,9 +57,9 @@ func TestStrip_StringLiteralsUntouched(t *testing.T) {
 		"\traw := `has // and /* inside */ too`\n" +
 		"\t_ = url\n\t_ = block\n\t_ = raw\n}\n"
 
-	out, err := Strip([]byte(src))
+	out, err := StripComments([]byte(src))
 	if err != nil {
-		t.Fatalf("Strip returned error: %v", err)
+		t.Fatalf("StripComments returned error: %v", err)
 	}
 
 	got := string(out)
@@ -88,9 +88,9 @@ func F() {
 	_ = x
 }
 `
-	out, err := Strip([]byte(src))
+	out, err := StripComments([]byte(src))
 	if err != nil {
-		t.Fatalf("Strip returned error: %v", err)
+		t.Fatalf("StripComments returned error: %v", err)
 	}
 
 	got := string(out)
@@ -118,9 +118,9 @@ func F() {
 	_ = x
 }
 `
-	out, err := Strip([]byte(src))
+	out, err := StripComments([]byte(src))
 	if err != nil {
-		t.Fatalf("Strip returned error: %v", err)
+		t.Fatalf("StripComments returned error: %v", err)
 	}
 
 	got := string(out)
@@ -144,9 +144,9 @@ import "embed"
 //go:embed data/*.json
 var schemaFiles embed.FS
 `
-	out, err := Strip([]byte(src))
+	out, err := StripComments([]byte(src))
 	if err != nil {
-		t.Fatalf("Strip returned error: %v", err)
+		t.Fatalf("StripComments returned error: %v", err)
 	}
 
 	got := string(out)
@@ -170,9 +170,9 @@ var tessPatterns []byte
 //go:embed tessdata/words.txt
 var tessWords []byte
 `
-	out, err := Strip([]byte(src))
+	out, err := StripComments([]byte(src))
 	if err != nil {
-		t.Fatalf("Strip returned error: %v", err)
+		t.Fatalf("StripComments returned error: %v", err)
 	}
 
 	got := string(out)
@@ -211,9 +211,9 @@ func F(t T) {
 	}
 }
 `
-	out, err := Strip([]byte(src))
+	out, err := StripComments([]byte(src))
 	if err != nil {
-		t.Fatalf("Strip returned error: %v", err)
+		t.Fatalf("StripComments returned error: %v", err)
 	}
 
 	formatted, err := format.Source(out)

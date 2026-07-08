@@ -24,10 +24,10 @@ import (
 // breaks the build or ships empty embed.FS values.
 var directivePattern = regexp.MustCompile(`^//go:\S|^// \+build\b`)
 
-// Strip removes every non-directive comment from the given Go source and
-// returns gofmt-formatted output. It returns an error if the source does not
-// parse.
-func Strip(src []byte) ([]byte, error) {
+// StripComments removes every non-directive comment from the given Go source
+// and returns gofmt-formatted output. It returns an error if the source does
+// not parse.
+func StripComments(src []byte) ([]byte, error) {
 	fset := token.NewFileSet()
 
 	file, err := parser.ParseFile(fset, "", src, parser.ParseComments|parser.SkipObjectResolution)
@@ -76,7 +76,7 @@ func StripFile(path string) error {
 		return err
 	}
 
-	stripped, err := Strip(src)
+	stripped, err := StripComments(src)
 	if err != nil {
 		return fmt.Errorf("%s: %w", path, err)
 	}

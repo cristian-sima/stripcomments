@@ -32,8 +32,8 @@ gostripcomments path/to/file.go another.go
 ```go
 import "github.com/cristian-sima/gostripcomments"
 
-// Strip returns gofmt-formatted source with comments removed.
-out, err := stripcomments.Strip(src)
+// StripComments returns gofmt-formatted source with comments removed.
+out, err := stripcomments.StripComments(src)
 
 // StripFile overwrites a file in place, preserving its mode.
 err := stripcomments.StripFile("path/to/file.go")
