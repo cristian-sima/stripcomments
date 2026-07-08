@@ -1,4 +1,4 @@
-// Command gostripcomments strips comments from Go source files in place,
+// Command stripcomments strips comments from Go source files in place,
 // preserving compiler and tool directives. Each argument is a path to a .go
 // file; every named file is overwritten with its comment-stripped, gofmt'd
 // form.
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cristian-sima/gostripcomments"
+	"github.com/cristian-sima/stripcomments"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: gostripcomments <file.go> [more files...]")
+		fmt.Fprintln(os.Stderr, "usage: stripcomments <file.go> [more files...]")
 		os.Exit(1)
 	}
 

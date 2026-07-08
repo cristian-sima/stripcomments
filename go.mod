@@ -1,3 +1,3 @@
-module github.com/cristian-sima/gostripcomments
+module github.com/cristian-sima/stripcomments
 
 go 1.26

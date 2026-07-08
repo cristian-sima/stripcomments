@@ -1,8 +1,8 @@
-# gostripcomments
+# stripcomments
 
 Strip comments from Go source while keeping the ones that matter.
 
-`gostripcomments` parses Go with the standard `go/parser`, drops every comment,
+`stripcomments` parses Go with the standard `go/parser`, drops every comment,
 and re-emits gofmt-formatted output. Compiler and tool **directives** are
 preserved, because removing them silently breaks builds or ships empty values:
 
@@ -16,7 +16,7 @@ untouched — only real comments are removed.
 ## Install
 
 ```sh
-go install github.com/cristian-sima/gostripcomments/cmd/gostripcomments@latest
+go install github.com/cristian-sima/stripcomments/cmd/stripcomments@latest
 ```
 
 ## CLI
@@ -24,13 +24,13 @@ go install github.com/cristian-sima/gostripcomments/cmd/gostripcomments@latest
 Overwrites each named file in place:
 
 ```sh
-gostripcomments path/to/file.go another.go
+stripcomments path/to/file.go another.go
 ```
 
 ## Library
 
 ```go
-import "github.com/cristian-sima/gostripcomments"
+import "github.com/cristian-sima/stripcomments"
 
 // StripComments returns gofmt-formatted source with comments removed.
 out, err := stripcomments.StripComments(src)
@@ -43,7 +43,7 @@ err := stripcomments.StripFile("path/to/file.go")
 
 ```sh
 find . -name '*.go' -not -path './vendor/*' -print0 \
-  | xargs -0 gostripcomments
+  | xargs -0 stripcomments
 ```
 
 ## License
