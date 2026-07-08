@@ -34,9 +34,4 @@
           stroke="#b45309" stroke-width="3" stroke-linecap="round" fill="none"/>
   </g>
 
-  <!-- preserved directive line, kept clean -->
-  <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-weight="700">
-    <text x="30" y="170" font-size="17" fill="#a7f3d0">//go:</text>
-    <text x="79" y="170" font-size="17" fill="#ffffff">embed</text>
-  </g>
 </svg>
