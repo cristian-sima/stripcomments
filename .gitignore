@@ -1,0 +1,5 @@
+/gostripcomments
+/gostripcomments.exe
+*.exe
+*.test
+*.out
