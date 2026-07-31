@@ -20,16 +20,17 @@ It keeps the comments that carry meaning:
 - **Directives** — `//go:embed`, `//go:generate`, `//go:build`, `//go:linkname`,
   the legacy `// +build`. Always kept; removing them breaks builds or ships
   empty values.
-- **Exported doc** — the doc block above every exported func, type, const, var,
-  and exported struct field / interface method. Kept by default (that's your
-  real API documentation).
+- **Doc comments** — the doc block above every func, type, const, var, struct
+  field and interface method, exported or not. Kept by default (that's your
+  real documentation).
 - **Package doc** — the `// Package ...` block. Kept by default.
 
-Everything else is swept: body comments, trailing inline notes, floating
-comments detached by a blank line, and docs on unexported identifiers. String
-and raw-string literals containing `//` or `/* */` are left untouched.
+Everything else is swept: body comments, trailing inline notes, and floating
+comments detached by a blank line. String and raw-string literals containing
+`//` or `/* */` are left untouched.
 
-Want a truly bare file? `-drop-exported` and `-drop-package` remove those too.
+Want a truly bare file? `-drop-exported`, `-drop-unexported` and
+`-drop-package` remove those too.
 
 ## What gets kept vs swept (defaults)
 
@@ -37,7 +38,7 @@ Want a truly bare file? `-drop-exported` and `-drop-package` remove those too.
 flowchart LR
     A["comment"] --> B{//go: directive?}
     B -->|yes| K["keep"]
-    B -->|no| C{doc above an<br/>exported ident<br/>or package?}
+    B -->|no| C{doc above a<br/>declaration<br/>or package?}
     C -->|yes| K
     C -->|no| D["sweep"]
 
@@ -61,7 +62,7 @@ func Charge() {                          // entry point   ← swept (trailing)
 	warm()
 }
 
-// helper is internal.                   ← swept (unexported doc)
+// helper is internal.                   ← kept (unexported doc)
 func helper() {}
 ```
 
@@ -76,6 +77,7 @@ func Charge() {
 	warm()
 }
 
+// helper is internal.
 func helper() {}
 ```
 
@@ -98,10 +100,11 @@ Flags (must come before the file arguments):
 | Flag | Effect |
 |---|---|
 | `-drop-exported` | also strip doc comments above exported identifiers |
+| `-drop-unexported` | also strip doc comments above unexported identifiers |
 | `-drop-package` | also strip the `// Package ...` doc |
 
 ```sh
-stripcomments -drop-exported -drop-package path/to/file.go
+stripcomments -drop-exported -drop-unexported -drop-package path/to/file.go
 ```
 
 ## Library
@@ -109,11 +112,15 @@ stripcomments -drop-exported -drop-package path/to/file.go
 ```go
 import "github.com/cristian-sima/stripcomments"
 
-// Default: keeps directives, exported doc, and package doc.
+// Default: keeps directives, every doc comment, and the package doc.
 out, err := stripcomments.StripComments(src)
 
 // Opt out to strip those too.
-out, err := stripcomments.StripComments(src, stripcomments.DropExported(), stripcomments.DropPackage())
+out, err := stripcomments.StripComments(src,
+	stripcomments.DropExported(),
+	stripcomments.DropUnexported(),
+	stripcomments.DropPackage(),
+)
 
 // StripFile overwrites a file in place, preserving its mode. Same options.
 err := stripcomments.StripFile("path/to/file.go")

@@ -39,7 +39,7 @@ func f() {
 	_ = x
 }
 `
-	out, err := StripComments([]byte(src))
+	out, err := StripComments([]byte(src), DropUnexported())
 	if err != nil {
 		t.Fatalf("StripComments returned error: %v", err)
 	}

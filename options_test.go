@@ -21,8 +21,8 @@ func helper() {}
 	if !strings.Contains(got, "// Package bank handles payments.") {
 		t.Errorf("expected package doc to survive by default, got:\n%s", got)
 	}
-	if strings.Contains(got, "does math") {
-		t.Errorf("expected unexported func doc to be stripped, got:\n%s", got)
+	if !strings.Contains(got, "// helper does math.") {
+		t.Errorf("expected unexported func doc to survive by default, got:\n%s", got)
 	}
 }
 
@@ -72,8 +72,8 @@ type Config struct {
 	if !strings.Contains(got, "// Timeout in seconds.") {
 		t.Errorf("expected exported field doc to survive, got:\n%s", got)
 	}
-	if strings.Contains(got, "internal cursor") {
-		t.Errorf("expected unexported field doc to be stripped, got:\n%s", got)
+	if !strings.Contains(got, "// internal cursor") {
+		t.Errorf("expected unexported field doc to survive by default, got:\n%s", got)
 	}
 }
 

@@ -1,11 +1,3 @@
-// Package stripcomments removes comments from Go source while preserving the
-// ones that carry meaning. Compiler and tool directives (//go:embed,
-// //go:generate, //go:build, the legacy // +build constraint, and similar)
-// are always kept. By default the doc-comment block above every exported
-// identifier and the package doc are kept too; the DropExported and
-// DropPackage options remove those as well. Everything else — body comments,
-// trailing inline comments, floating comments, and unexported docs — is
-// stripped. Output is re-emitted gofmt-formatted.
 package stripcomments
 
 import (
@@ -19,17 +11,8 @@ import (
 	"regexp"
 )
 
-// directivePattern matches Go compiler/tool directive comments: //go:embed,
-// //go:generate, //go:build, //go:linkname, etc., plus the legacy
-// // +build constraint. These look like ordinary comments to go/parser but
-// carry real semantic meaning (the go:build/legacy pair) or perform real
-// work (go:embed populates the variable below it) — stripping them silently
-// breaks the build or ships empty embed.FS values.
 var directivePattern = regexp.MustCompile(`^//go:\S|^// \+build\b`)
 
-// StripComments removes every non-directive comment from the given Go source
-// and returns gofmt-formatted output. It returns an error if the source does
-// not parse.
 func StripComments(src []byte, opts ...Option) ([]byte, error) {
 	cfg := defaultConfig()
 	for _, opt := range opts {
@@ -51,7 +34,7 @@ func StripComments(src []byte, opts ...Option) ([]byte, error) {
 	ast.Inspect(file, func(node ast.Node) bool {
 		switch typed := node.(type) {
 		case *ast.Field:
-			if !(cfg.preserveExported && fieldExported(typed)) {
+			if !keepsDoc(cfg, fieldExported(typed)) {
 				typed.Doc = keepDirectiveGroup(typed.Doc)
 			}
 			typed.Comment = keepDirectiveGroup(typed.Comment)
@@ -59,21 +42,21 @@ func StripComments(src []byte, opts ...Option) ([]byte, error) {
 			typed.Doc = keepDirectiveGroup(typed.Doc)
 			typed.Comment = keepDirectiveGroup(typed.Comment)
 		case *ast.ValueSpec:
-			if !(cfg.preserveExported && anyExported(typed.Names)) {
+			if !keepsDoc(cfg, anyExported(typed.Names)) {
 				typed.Doc = keepDirectiveGroup(typed.Doc)
 			}
 			typed.Comment = keepDirectiveGroup(typed.Comment)
 		case *ast.TypeSpec:
-			if !(cfg.preserveExported && typed.Name.IsExported()) {
+			if !keepsDoc(cfg, typed.Name.IsExported()) {
 				typed.Doc = keepDirectiveGroup(typed.Doc)
 			}
 			typed.Comment = keepDirectiveGroup(typed.Comment)
 		case *ast.GenDecl:
-			if !(cfg.preserveExported && genDeclHasExported(typed)) {
+			if !keepsDoc(cfg, genDeclHasExported(typed)) {
 				typed.Doc = keepDirectiveGroup(typed.Doc)
 			}
 		case *ast.FuncDecl:
-			if !(cfg.preserveExported && typed.Name.IsExported()) {
+			if !keepsDoc(cfg, typed.Name.IsExported()) {
 				typed.Doc = keepDirectiveGroup(typed.Doc)
 			}
 		}
@@ -88,9 +71,6 @@ func StripComments(src []byte, opts ...Option) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// StripFile strips comments from the file at path and overwrites it in place,
-// preserving the file's existing mode. It applies the same options as
-// StripComments.
 func StripFile(path string, opts ...Option) error {
 	src, err := os.ReadFile(path)
 	if err != nil {

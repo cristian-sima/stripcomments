@@ -1,8 +1,3 @@
-// Command stripcomments strips comments from Go source files in place,
-// preserving compiler and tool directives. By default it also keeps the doc
-// comments above exported identifiers and the package doc; pass -drop-exported
-// or -drop-package to remove those too. Each non-flag argument is a path to a
-// .go file, overwritten with its comment-stripped, gofmt'd form.
 package main
 
 import (
@@ -15,9 +10,10 @@ import (
 
 func main() {
 	dropExported := flag.Bool("drop-exported", false, "also strip doc comments above exported identifiers")
+	dropUnexported := flag.Bool("drop-unexported", false, "also strip doc comments above unexported identifiers")
 	dropPackage := flag.Bool("drop-package", false, "also strip the package doc comment")
 	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "usage: stripcomments [-drop-exported] [-drop-package] <file.go> [more files...]")
+		fmt.Fprintln(os.Stderr, "usage: stripcomments [-drop-exported] [-drop-unexported] [-drop-package] <file.go> [more files...]")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -31,6 +27,9 @@ func main() {
 	var opts []stripcomments.Option
 	if *dropExported {
 		opts = append(opts, stripcomments.DropExported())
+	}
+	if *dropUnexported {
+		opts = append(opts, stripcomments.DropUnexported())
 	}
 	if *dropPackage {
 		opts = append(opts, stripcomments.DropPackage())
