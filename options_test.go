@@ -1,33 +1,38 @@
 package stripcomments
 
 import (
-	"strings"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestDefault_PreservesPackageDoc(t *testing.T) {
-	src := `// Package bank handles payments.
+	Convey("Given source with a package doc and an unexported func doc", t, func() {
+		src := `// Package bank handles payments.
 package bank
 
 // helper does math.
 func helper() {}
 `
-	out, err := StripComments([]byte(src))
-	if err != nil {
-		t.Fatalf("StripComments returned error: %v", err)
-	}
+		Convey("When stripped with default options", func() {
+			out, err := StripComments([]byte(src))
+			So(err, ShouldBeNil)
 
-	got := string(out)
-	if !strings.Contains(got, "// Package bank handles payments.") {
-		t.Errorf("expected package doc to survive by default, got:\n%s", got)
-	}
-	if !strings.Contains(got, "// helper does math.") {
-		t.Errorf("expected unexported func doc to survive by default, got:\n%s", got)
-	}
+			got := string(out)
+
+			Convey("Then the package doc survives", func() {
+				So(got, ShouldContainSubstring, "// Package bank handles payments.")
+			})
+			Convey("Then the unexported func doc survives", func() {
+				So(got, ShouldContainSubstring, "// helper does math.")
+			})
+		})
+	})
 }
 
 func TestDefault_PreservesExportedFuncDoc(t *testing.T) {
-	src := `package p
+	Convey("Given source with an exported func doc and a body comment", t, func() {
+		src := `package p
 
 // Charge runs the payment.
 func Charge() {
@@ -35,22 +40,25 @@ func Charge() {
 	_ = x
 }
 `
-	out, err := StripComments([]byte(src))
-	if err != nil {
-		t.Fatalf("StripComments returned error: %v", err)
-	}
+		Convey("When stripped with default options", func() {
+			out, err := StripComments([]byte(src))
+			So(err, ShouldBeNil)
 
-	got := string(out)
-	if !strings.Contains(got, "// Charge runs the payment.") {
-		t.Errorf("expected exported func doc to survive by default, got:\n%s", got)
-	}
-	if strings.Contains(got, "temp") {
-		t.Errorf("expected body comment to be stripped, got:\n%s", got)
-	}
+			got := string(out)
+
+			Convey("Then the exported func doc survives", func() {
+				So(got, ShouldContainSubstring, "// Charge runs the payment.")
+			})
+			Convey("Then the body comment is stripped", func() {
+				So(got, ShouldNotContainSubstring, "temp")
+			})
+		})
+	})
 }
 
 func TestDefault_PreservesExportedTypeAndFieldDoc(t *testing.T) {
-	src := `package p
+	Convey("Given source with type, exported field, and unexported field docs", t, func() {
+		src := `package p
 
 // Config holds settings.
 type Config struct {
@@ -60,49 +68,55 @@ type Config struct {
 	pos int
 }
 `
-	out, err := StripComments([]byte(src))
-	if err != nil {
-		t.Fatalf("StripComments returned error: %v", err)
-	}
+		Convey("When stripped with default options", func() {
+			out, err := StripComments([]byte(src))
+			So(err, ShouldBeNil)
 
-	got := string(out)
-	if !strings.Contains(got, "// Config holds settings.") {
-		t.Errorf("expected exported type doc to survive, got:\n%s", got)
-	}
-	if !strings.Contains(got, "// Timeout in seconds.") {
-		t.Errorf("expected exported field doc to survive, got:\n%s", got)
-	}
-	if !strings.Contains(got, "// internal cursor") {
-		t.Errorf("expected unexported field doc to survive by default, got:\n%s", got)
-	}
+			got := string(out)
+
+			Convey("Then the exported type doc survives", func() {
+				So(got, ShouldContainSubstring, "// Config holds settings.")
+			})
+			Convey("Then the exported field doc survives", func() {
+				So(got, ShouldContainSubstring, "// Timeout in seconds.")
+			})
+			Convey("Then the unexported field doc survives by default", func() {
+				So(got, ShouldContainSubstring, "// internal cursor")
+			})
+		})
+	})
 }
 
 func TestDropExported_StripsExportedFuncDoc(t *testing.T) {
-	src := `package p
+	Convey("Given source with an exported func doc", t, func() {
+		src := `package p
 
 // Charge runs the payment.
 func Charge() {}
 `
-	out, err := StripComments([]byte(src), DropExported())
-	if err != nil {
-		t.Fatalf("StripComments returned error: %v", err)
-	}
+		Convey("When stripped with DropExported", func() {
+			out, err := StripComments([]byte(src), DropExported())
+			So(err, ShouldBeNil)
 
-	if strings.Contains(string(out), "Charge runs the payment") {
-		t.Errorf("expected exported func doc to be stripped with DropExported, got:\n%s", out)
-	}
+			Convey("Then the exported func doc is stripped", func() {
+				So(string(out), ShouldNotContainSubstring, "Charge runs the payment")
+			})
+		})
+	})
 }
 
 func TestDropPackage_StripsPackageDoc(t *testing.T) {
-	src := `// Package bank handles payments.
+	Convey("Given source with a package doc", t, func() {
+		src := `// Package bank handles payments.
 package bank
 `
-	out, err := StripComments([]byte(src), DropPackage())
-	if err != nil {
-		t.Fatalf("StripComments returned error: %v", err)
-	}
+		Convey("When stripped with DropPackage", func() {
+			out, err := StripComments([]byte(src), DropPackage())
+			So(err, ShouldBeNil)
 
-	if strings.Contains(string(out), "handles payments") {
-		t.Errorf("expected package doc to be stripped with DropPackage, got:\n%s", out)
-	}
+			Convey("Then the package doc is stripped", func() {
+				So(string(out), ShouldNotContainSubstring, "handles payments")
+			})
+		})
+	})
 }

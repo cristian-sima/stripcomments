@@ -6,31 +6,36 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestStrip_InlineTrailingComment(t *testing.T) {
-	src := `package p
+	Convey("Given source with an inline trailing comment", t, func() {
+		src := `package p
 
 func F() {
 	x := 1 // comment
 	_ = x
 }
 `
-	out, err := StripComments([]byte(src))
-	if err != nil {
-		t.Fatalf("StripComments returned error: %v", err)
-	}
+		Convey("When stripped", func() {
+			out, err := StripComments([]byte(src))
+			So(err, ShouldBeNil)
 
-	if strings.Contains(string(out), "comment") {
-		t.Errorf("expected comment to be stripped, got:\n%s", out)
-	}
-	if !strings.Contains(string(out), "x := 1") {
-		t.Errorf("expected code line to survive, got:\n%s", out)
-	}
+			Convey("Then the comment is stripped", func() {
+				So(string(out), ShouldNotContainSubstring, "comment")
+			})
+			Convey("Then the code line survives", func() {
+				So(string(out), ShouldContainSubstring, "x := 1")
+			})
+		})
+	})
 }
 
 func TestStrip_StandaloneAndBlockComments(t *testing.T) {
-	src := `package p
+	Convey("Given source with a doc comment and a block comment", t, func() {
+		src := `package p
 
 // doc comment
 func f() {
@@ -39,46 +44,51 @@ func f() {
 	_ = x
 }
 `
-	out, err := StripComments([]byte(src), DropUnexported())
-	if err != nil {
-		t.Fatalf("StripComments returned error: %v", err)
-	}
+		Convey("When stripped with DropUnexported", func() {
+			out, err := StripComments([]byte(src), DropUnexported())
+			So(err, ShouldBeNil)
 
-	if strings.Contains(string(out), "comment") {
-		t.Errorf("expected all comments to be stripped, got:\n%s", out)
-	}
+			Convey("Then all comments are stripped", func() {
+				So(string(out), ShouldNotContainSubstring, "comment")
+			})
+		})
+	})
 }
 
 func TestStrip_StringLiteralsUntouched(t *testing.T) {
-	src := "package p\n\n" +
-		`func F() {` + "\n" +
-		"\turl := \"http://example.com\" // trailing comment\n" +
-		"\tblock := \"/* not a comment */\"\n" +
-		"\traw := `has // and /* inside */ too`\n" +
-		"\t_ = url\n\t_ = block\n\t_ = raw\n}\n"
+	Convey("Given source with comment-like content inside string literals", t, func() {
+		src := "package p\n\n" +
+			`func F() {` + "\n" +
+			"\turl := \"http://example.com\" // trailing comment\n" +
+			"\tblock := \"/* not a comment */\"\n" +
+			"\traw := `has // and /* inside */ too`\n" +
+			"\t_ = url\n\t_ = block\n\t_ = raw\n}\n"
 
-	out, err := StripComments([]byte(src))
-	if err != nil {
-		t.Fatalf("StripComments returned error: %v", err)
-	}
+		Convey("When stripped", func() {
+			out, err := StripComments([]byte(src))
+			So(err, ShouldBeNil)
 
-	got := string(out)
-	if !strings.Contains(got, `"http://example.com"`) {
-		t.Errorf("expected string literal with // to survive, got:\n%s", got)
-	}
-	if !strings.Contains(got, `"/* not a comment */"`) {
-		t.Errorf("expected string literal with /* */ to survive, got:\n%s", got)
-	}
-	if !strings.Contains(got, "`has // and /* inside */ too`") {
-		t.Errorf("expected raw string literal to survive untouched, got:\n%s", got)
-	}
-	if strings.Contains(got, "trailing comment") {
-		t.Errorf("expected real trailing comment to be stripped, got:\n%s", got)
-	}
+			got := string(out)
+
+			Convey("Then the string literal with // survives", func() {
+				So(got, ShouldContainSubstring, `"http://example.com"`)
+			})
+			Convey("Then the string literal with /* */ survives", func() {
+				So(got, ShouldContainSubstring, `"/* not a comment */"`)
+			})
+			Convey("Then the raw string literal survives untouched", func() {
+				So(got, ShouldContainSubstring, "`has // and /* inside */ too`")
+			})
+			Convey("Then the real trailing comment is stripped", func() {
+				So(got, ShouldNotContainSubstring, "trailing comment")
+			})
+		})
+	})
 }
 
 func TestStrip_PreservesBuildConstraints(t *testing.T) {
-	src := `//go:build windows
+	Convey("Given source with build constraints and a regular comment", t, func() {
+		src := `//go:build windows
 // +build windows
 
 package p
@@ -88,25 +98,28 @@ func F() {
 	_ = x
 }
 `
-	out, err := StripComments([]byte(src))
-	if err != nil {
-		t.Fatalf("StripComments returned error: %v", err)
-	}
+		Convey("When stripped", func() {
+			out, err := StripComments([]byte(src))
+			So(err, ShouldBeNil)
 
-	got := string(out)
-	if !strings.Contains(got, "//go:build windows") {
-		t.Errorf("expected //go:build constraint to survive, got:\n%s", got)
-	}
-	if !strings.Contains(got, "// +build windows") {
-		t.Errorf("expected legacy +build constraint to survive, got:\n%s", got)
-	}
-	if strings.Contains(got, "// comment") {
-		t.Errorf("expected regular comment to still be stripped, got:\n%s", got)
-	}
+			got := string(out)
+
+			Convey("Then the //go:build constraint survives", func() {
+				So(got, ShouldContainSubstring, "//go:build windows")
+			})
+			Convey("Then the legacy +build constraint survives", func() {
+				So(got, ShouldContainSubstring, "// +build windows")
+			})
+			Convey("Then the regular comment is still stripped", func() {
+				So(got, ShouldNotContainSubstring, "// comment")
+			})
+		})
+	})
 }
 
 func TestStrip_PreservesGoEmbedDirective(t *testing.T) {
-	src := `package p
+	Convey("Given source with a go:embed directive and a regular comment", t, func() {
+		src := `package p
 
 import "embed"
 
@@ -118,25 +131,28 @@ func F() {
 	_ = x
 }
 `
-	out, err := StripComments([]byte(src))
-	if err != nil {
-		t.Fatalf("StripComments returned error: %v", err)
-	}
+		Convey("When stripped", func() {
+			out, err := StripComments([]byte(src))
+			So(err, ShouldBeNil)
 
-	got := string(out)
-	if !strings.Contains(got, "//go:embed data/*.json") {
-		t.Errorf("expected //go:embed directive to survive, got:\n%s", got)
-	}
-	if strings.Count(got, "//go:embed") != 1 {
-		t.Errorf("expected //go:embed to appear exactly once, got:\n%s", got)
-	}
-	if strings.Contains(got, "// comment") {
-		t.Errorf("expected regular comment to still be stripped, got:\n%s", got)
-	}
+			got := string(out)
+
+			Convey("Then the //go:embed directive survives", func() {
+				So(got, ShouldContainSubstring, "//go:embed data/*.json")
+			})
+			Convey("Then //go:embed appears exactly once", func() {
+				So(strings.Count(got, "//go:embed"), ShouldEqual, 1)
+			})
+			Convey("Then the regular comment is still stripped", func() {
+				So(got, ShouldNotContainSubstring, "// comment")
+			})
+		})
+	})
 }
 
 func TestStrip_PreservesDirectiveAdjacentToDocComment(t *testing.T) {
-	src := `package p
+	Convey("Given source with a doc comment directly above a go:embed directive", t, func() {
+		src := `package p
 
 import "embed"
 
@@ -144,22 +160,25 @@ import "embed"
 //go:embed data/*.json
 var schemaFiles embed.FS
 `
-	out, err := StripComments([]byte(src))
-	if err != nil {
-		t.Fatalf("StripComments returned error: %v", err)
-	}
+		Convey("When stripped", func() {
+			out, err := StripComments([]byte(src))
+			So(err, ShouldBeNil)
 
-	got := string(out)
-	if !strings.Contains(got, "//go:embed data/*.json") {
-		t.Errorf("expected //go:embed directive to survive, got:\n%s", got)
-	}
-	if strings.Contains(got, "holds every schema") {
-		t.Errorf("expected the adjacent doc comment to still be stripped, got:\n%s", got)
-	}
+			got := string(out)
+
+			Convey("Then the //go:embed directive survives", func() {
+				So(got, ShouldContainSubstring, "//go:embed data/*.json")
+			})
+			Convey("Then the adjacent doc comment is still stripped", func() {
+				So(got, ShouldNotContainSubstring, "holds every schema")
+			})
+		})
+	})
 }
 
 func TestStrip_PreservesDirectiveAfterDocParagraphAndBlankCommentLine(t *testing.T) {
-	src := `package p
+	Convey("Given source with a doc paragraph, blank comment line, and two go:embed directives", t, func() {
+		src := `package p
 
 // tessPatterns is bundled into the binary so no setup is required on
 // the host.
@@ -170,33 +189,33 @@ var tessPatterns []byte
 //go:embed tessdata/words.txt
 var tessWords []byte
 `
-	out, err := StripComments([]byte(src))
-	if err != nil {
-		t.Fatalf("StripComments returned error: %v", err)
-	}
+		Convey("When stripped", func() {
+			out, err := StripComments([]byte(src))
+			So(err, ShouldBeNil)
 
-	got := string(out)
-	if !strings.Contains(got, "//go:embed tessdata/patterns.txt") {
-		t.Errorf("expected first //go:embed directive to survive, got:\n%s", got)
-	}
-	if !strings.Contains(got, "//go:embed tessdata/words.txt") {
-		t.Errorf("expected second //go:embed directive to survive, got:\n%s", got)
-	}
-	if strings.Contains(got, "bundled into the binary") {
-		t.Errorf("expected the doc paragraph to still be stripped, got:\n%s", got)
-	}
+			got := string(out)
 
-	formatted, err := format.Source(out)
-	if err != nil {
-		t.Fatalf("format.Source on stripped output failed: %v", err)
-	}
-	if string(out) != string(formatted) {
-		t.Errorf("stripped output is not gofmt-formatted.\ngot:\n%s\nwant:\n%s", out, formatted)
-	}
+			Convey("Then the first //go:embed directive survives", func() {
+				So(got, ShouldContainSubstring, "//go:embed tessdata/patterns.txt")
+			})
+			Convey("Then the second //go:embed directive survives", func() {
+				So(got, ShouldContainSubstring, "//go:embed tessdata/words.txt")
+			})
+			Convey("Then the doc paragraph is still stripped", func() {
+				So(got, ShouldNotContainSubstring, "bundled into the binary")
+			})
+			Convey("Then the stripped output is gofmt-formatted", func() {
+				formatted, formatErr := format.Source(out)
+				So(formatErr, ShouldBeNil)
+				So(string(out), ShouldEqual, string(formatted))
+			})
+		})
+	})
 }
 
 func TestStrip_OutputIsGofmtFormatted(t *testing.T) {
-	src := `package p
+	Convey("Given source with a struct field trailing comment", t, func() {
+		src := `package p
 
 import "fmt"
 
@@ -211,41 +230,40 @@ func F(t T) {
 	}
 }
 `
-	out, err := StripComments([]byte(src))
-	if err != nil {
-		t.Fatalf("StripComments returned error: %v", err)
-	}
+		Convey("When stripped", func() {
+			out, err := StripComments([]byte(src))
+			So(err, ShouldBeNil)
 
-	formatted, err := format.Source(out)
-	if err != nil {
-		t.Fatalf("format.Source on stripped output failed: %v", err)
-	}
-
-	if string(out) != string(formatted) {
-		t.Errorf("stripped output is not gofmt-formatted.\ngot:\n%s\nwant:\n%s", out, formatted)
-	}
+			Convey("Then the stripped output is gofmt-formatted", func() {
+				formatted, formatErr := format.Source(out)
+				So(formatErr, ShouldBeNil)
+				So(string(out), ShouldEqual, string(formatted))
+			})
+		})
+	})
 }
 
 func TestStripFile_OverwritesInPlace(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "sample.go")
-	src := "package p\n\nfunc F() {\n\tx := 1 // comment\n\t_ = x\n}\n"
-	if err := os.WriteFile(path, []byte(src), 0o644); err != nil {
-		t.Fatalf("WriteFile setup failed: %v", err)
-	}
+	Convey("Given a file on disk with an inline comment", t, func() {
+		dir := t.TempDir()
+		path := filepath.Join(dir, "sample.go")
+		src := "package p\n\nfunc F() {\n\tx := 1 // comment\n\t_ = x\n}\n"
+		writeErr := os.WriteFile(path, []byte(src), 0o644)
+		So(writeErr, ShouldBeNil)
 
-	if err := StripFile(path); err != nil {
-		t.Fatalf("StripFile returned error: %v", err)
-	}
+		Convey("When StripFile processes it", func() {
+			err := StripFile(path)
+			So(err, ShouldBeNil)
 
-	got, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatalf("ReadFile after processing failed: %v", err)
-	}
-	if strings.Contains(string(got), "comment") {
-		t.Errorf("expected file on disk to have comment stripped, got:\n%s", got)
-	}
-	if !strings.Contains(string(got), "x := 1") {
-		t.Errorf("expected code to survive on disk, got:\n%s", got)
-	}
+			got, readErr := os.ReadFile(path)
+			So(readErr, ShouldBeNil)
+
+			Convey("Then the comment is stripped on disk", func() {
+				So(string(got), ShouldNotContainSubstring, "comment")
+			})
+			Convey("Then the code survives on disk", func() {
+				So(string(got), ShouldContainSubstring, "x := 1")
+			})
+		})
+	})
 }
