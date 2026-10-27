@@ -1,3 +1,4 @@
+// cspell:ignore tessdata
 package stripcomments
 
 import (
